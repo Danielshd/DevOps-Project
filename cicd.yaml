@@ -27,9 +27,9 @@ jobs:
 
     - name: Set up Kubeconfig
       run: |
-		mkdir -p /HOME/runner/.kube
-        echo "${{ secrets.KUBE_CONFIG_DATA }}" > /HOME/runner/.kube/config
-		chmod 600 /HOME/runner/.kube/config
+        mkdir -p /home/runner/.kube
+        echo "${{ secrets.KUBE_CONFIG_DATA }}" > /home/runner/.kube/config
+        chmod 600 /home/runner/.kube/config
 
     - name: Deploy to Kubernetes
       run: |
