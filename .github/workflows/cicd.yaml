@@ -28,14 +28,11 @@ jobs:
     - name: Deploy to Kubernetes
       run: |
         echo "${{ secrets.K8S_CA_CRT }}" | base64 --decode > k8s-ca.crt
-
-        kubectl --server=${{ secrets.K8S_API_URL }} \
-                --token=${{ secrets.K8S_TOKEN }} \
-                --certificate-authority=k8s-ca.crt \
-                apply -f deployment.yaml
-
-        # Deploy Service manifest
-        kubectl --server=${{ secrets.K8S_API_URL }} \
-                --token=${{ secrets.K8S_TOKEN }} \
-                --certificate-authority=k8s-ca.crt \
-                apply -f service.yaml
+         kubectl --server=${{ secrets.K8S_API_URL }} \
+          --token=${{ secrets.K8S_TOKEN }} \
+          --certificate-authority=k8s-ca.crt \
+        apply -f deployment.yaml
+         kubectl --server=${{ secrets.K8S_API_URL }} \
+          --token=${{ secrets.K8S_TOKEN }} \
+          --certificate-authority=k8s-ca.crt \
+          apply -f service.yaml
