@@ -25,19 +25,15 @@ jobs:
     - name: Push Docker image
       run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest
 
-    - name: Deploy to Kubernetes
-      run: |
-        # Decode the Kubernetes CA certificate to a temporary file
-        echo "${{ secrets.K8S_CA_CRT }}" | base64 --decode > k8s-ca.crt
+    - name: Setup kubectl
+      uses: deliverybot/kubectl-action@v1
+      with:
+       version: 'v1.27.0'
+       server: ${{ secrets.K8S_API_URL }}
+       token: ${{ secrets.K8S_TOKEN }}
+       ca: ${{ secrets.K8S_CA_CRT }}
 
-        # Apply Deployment
-        kubectl --server=${{ secrets.K8S_API_URL }} \
-                --token=${{ secrets.K8S_TOKEN }} \
-                --certificate-authority=k8s-ca.crt \
-                apply -f deployment.yaml
-
-        # Apply Service
-        kubectl --server=${{ secrets.K8S_API_URL }} \
-                --token=${{ secrets.K8S_TOKEN }} \
-                --certificate-authority=k8s-ca.crt \
-                apply -f service.yaml
+   - name: Deploy manifests
+     run: |
+      kubectl apply -f deployment.yaml
+      kubectl apply -f service.yaml
