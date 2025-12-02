@@ -25,13 +25,16 @@ jobs:
     - name: Push Docker image
       run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest
 
-    - name: Set up Kubeconfig
+    - name: Deploy to Kubernetes (no kubeconfig)
       run: |
-        mkdir -p /home/runner/.kube
-        echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > /home/runner/.kube/config
-        chmod 600 /home/runner/.kube/config
+        kubectl \
+          --server=${{ secrets.K8S_API_URL }} \
+          --token=${{ secrets.K8S_TOKEN }} \
+          --certificate-authority=<(echo "${{ secrets.K8S_CA_CRT }}") \
+          apply -f deployment.yaml
 
-    - name: Deploy to Kubernetes
-      run: |
-        kubectl apply -f deployment.yaml
-        kubectl apply -f service.yaml
+       kubectl \
+         --server=${{ secrets.K8S_API_URL }} \
+         --token=${{ secrets.K8S_TOKEN }} \
+         --certificate-authority=<(echo "${{ secrets.K8S_CA_CRT }}") \
+         apply -f service.yaml
