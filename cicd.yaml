@@ -27,6 +27,7 @@ jobs:
 
     - name: Deploy to Kubernetes (no kubeconfig)
       run: |
+        echo "${{ secrets.K8S_CA_CRT }}" > ca.crt
         kubectl \
           --server=${{ secrets.K8S_API_URL }} \
           --token=${{ secrets.K8S_TOKEN }} \
