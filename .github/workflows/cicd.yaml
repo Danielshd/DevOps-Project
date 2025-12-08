@@ -13,8 +13,8 @@ jobs:
       AWS_ACCOUNT: "339712952166"           
       REPO_NAME: "test-repo"                
       EKS_CLUSTER: "devops-cluster"          
-      DEPLOYMENT_NAME: "flask-deployment"    
-      CONTAINER_NAME: "flask-container"
+      DEPLOYMENT_NAME: "flask-app"    
+      CONTAINER_NAME: "flask-app"
 
     steps:
     - name: Checkout code
