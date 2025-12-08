@@ -14,7 +14,7 @@ jobs:
       REPO_NAME: "test-repo"                
       EKS_CLUSTER: "devops-cluster"          
       DEPLOYMENT_NAME: "flask-deployment"    
-      CONTAINER_NAME: "flask-container"  
+      CONTAINER_NAME: "flask-container"
 
     steps:
     - name: Checkout code
