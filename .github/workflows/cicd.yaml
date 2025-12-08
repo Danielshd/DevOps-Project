@@ -11,7 +11,7 @@ jobs:
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCOUNT: "339712952166"           
-      REPO_NAME: "flask-demo"                
+      REPO_NAME: "test-repo"                
       EKS_CLUSTER: "devops-cluster"          
       DEPLOYMENT_NAME: "flask-deployment"    
       CONTAINER_NAME: "flask-container"  
