@@ -1,53 +1,104 @@
-name: AWS CI/CD
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ACCOUNT: "339712952166"           
-      REPO_NAME: "test-repo"                
-      EKS_CLUSTER: "devops-cluster"          
-      DEPLOYMENT_NAME: "flask-deployment"    
-      CONTAINER_NAME: "flask-container"
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    # 1️⃣ Checkout repo
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
+    # 2️⃣ Configure AWS credentials
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Log in to ECR
-      id: ecr-login
-      uses: aws-actions/amazon-ecr-login@v2
+    # 3️⃣ Log in to Docker Hub
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+    # 4️⃣ Build Docker image
     - name: Build Docker image
       run: |
-        IMAGE_TAG=$(date +%s)
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-        docker build -t $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest .
 
+    # 5️⃣ Push Docker image to Docker Hub
     - name: Push Docker image
       run: |
-        docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest
 
-    - name: Update kubeconfig for EKS
+    # 6️⃣ Update kubeconfig to connect to EKS
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+    # 7️⃣ Generate Deployment YAML dynamically
+    - name: Generate Deployment YAML
       run: |
-        aws eks update-kubeconfig \
-          --name $EKS_CLUSTER \
-          --region $AWS_REGION
+        cat <<EOF > deployment.yaml
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: flask-deployment
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: flask-app
+          template:
+            metadata:
+              labels:
+                app: flask-app
+            spec:
+              containers:
+              - name: flask-container
+                image: ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest
+                ports:
+                - containerPort: 5000
+        EOF
 
+    # 8️⃣ Generate Service YAML dynamically
+    - name: Generate Service YAML
+      run: |
+        cat <<EOF > service.yaml
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: flask-service
+        spec:
+          selector:
+            app: flask-app
+          type: NodePort
+          ports:
+          - protocol: TCP
+            port: 5000
+            targetPort: 5000
+        EOF
+
+    # 9️⃣ Deploy to Kubernetes
     - name: Deploy to EKS
       run: |
-        kubectl set image deployment/$DEPLOYMENT_NAME \
-        $CONTAINER_NAME=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+        kubectl apply -f deployment.yaml
+        kubectl apply -f service.yaml
+
+    # 🔟 Optional: Test deployment
+    - name: Test deployment
+      run: kubectl get deployments -A
+
+    # 1️⃣1️⃣ Get the NodePort URL
+    - name: Get NodePort URL
+      run: |
+        NODE_PORT=$(kubectl get svc flask-service -o jsonpath='{.spec.ports[0].nodePort}')
+        CLUSTER_NODES=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')
+        echo "Flask app should be accessible at http://$CLUSTER_NODES:$NODE_PORT"
