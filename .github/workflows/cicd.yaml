@@ -33,6 +33,15 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest .
+        
+    # Trivy Scan
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest
+        format: 'table'
+        exit-code: 0
+        vuln-type: 'os,library'
 
     # Push Docker image to Docker Hub
     - name: Push Docker image
@@ -66,6 +75,15 @@ jobs:
                 image: ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest
                 ports:
                 - containerPort: 5000
+                env:
+                - name: DB_HOST
+                  value: "mysql"
+                - name: DB_USER
+                  value: "root"
+                - name: DB_PASSWORD
+                  value: "rootpass"
+                - name: DB_NAME
+                  value: "flaskdb"
         EOF
 
     # Generate Service YAML dynamically
@@ -86,11 +104,71 @@ jobs:
             targetPort: 5000
         EOF
 
+    # Generate MySQL Deployment YAML
+    - name: Generate MySQL Deployment YAML
+      run: |
+        cat <<EOF > mysql-deployment.yaml
+        apiVersion: v1
+        kind: PersistentVolumeClaim
+        metadata:
+          name: mysql-pvc
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+        ---
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: mysql
+        spec:
+          selector:
+            matchLabels:
+              app: mysql
+          replicas: 1
+          template:
+            metadata:
+              labels:
+                app: mysql
+            spec:
+              containers:
+              - name: mysql
+                image: mysql:5.7
+                env:
+                - name: MYSQL_ROOT_PASSWORD
+                  value: rootpass
+                - name: MYSQL_DATABASE
+                  value: flaskdb
+                ports:
+                - containerPort: 3306
+                volumeMounts:
+                - name: mysql-storage
+                  mountPath: /var/lib/mysql
+              volumes:
+              - name: mysql-storage
+                persistentVolumeClaim:
+                  claimName: mysql-pvc
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: mysql
+        spec:
+          ports:
+          - port: 3306
+            targetPort: 3306
+          selector:
+            app: mysql
+        EOF
+
     # Deploy to Kubernetes
     - name: Deploy to EKS
       run: |
         kubectl apply -f deployment.yaml
         kubectl apply -f service.yaml
+        kubectl apply -f mysql-deployment.yaml
 
     # Optional: Test deployment
     - name: Test deployment
