@@ -1,10 +1,20 @@
 flask:
-  image: "<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/<REPO_NAME>:latest"
+  image: "339712952166.dkr.ecr.us-east-1.amazonaws.com/devops-cluster:latest"
   replicas: 1
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 5000
 
 mysql:
-  image: mysql:5.7
-  rootPassword: root123
-  database: flaskdb
-  user: flaskuser
-  password: flaskpass
+  image: "mysql:5.7"
+  rootPassword: "root"       # set via --set or GitHub Secret
+  database: "flaskdb"
+  user: "root"
+  password: "change-me"           # set via --set or GitHub Secret
+  persistence:
+    enabled: true
+    storageClass: ""              # leave blank to use default storage class
+    accessMode: ReadWriteOnce
+    size: 5Gi
+
