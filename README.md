@@ -1,72 +1,42 @@
 DevOps CI/CD Pipeline – GitHub → Docker Hub → Kubernetes
 
-This repository demonstrates an end-to-end CI/CD pipeline that builds, packages, and deploys a Python Flask application to a Kubernetes cluster using an automated workflow.
+Welcome to my DevOps project! This repository showcases a full CI/CD pipeline that takes a simple Python Flask application from GitHub, packages it in Docker, and deploys it to a Kubernetes cluster automatically.
 
-Project Overview
+About the Project
 
-This project implements a complete DevOps delivery workflow, including:
-	•	Version control through GitHub
-	•	Docker image build and tagging
-	•	Publishing the image to Docker Hub
-	•	Automated deployment to Kubernetes via kubectl
-	•	Continuous rollout of new versions upon each push to the repository
+The goal of this project was to implement a hands-on, end-to-end DevOps workflow. It covers:
+	•	Version control with GitHub
+	•	Building and tagging a Docker image for a Flask web app
+	•	Pushing the Docker image to Docker Hub
+	•	Deploying the app to Kubernetes using kubectl
+	•	Automatically updating the deployment whenever code changes are pushed
 
-The application itself is a minimal Flask-based “Hello World” web service, fully containerized and orchestrated via Kubernetes.
+The app itself is a lightweight “Hello World” Flask service, but the focus here is on the automation pipeline.
 
-Architecture & Workflow
-
-1. GitHub Repository
-
-The application source code, Dockerfile, Kubernetes manifests, and CI/CD pipeline configuration are maintained in this repository.
-
-2. Docker Image Build
-
-The CI pipeline builds a Docker image using the provided Dockerfile, ensuring consistent runtime behavior.
-
-3. Image Tagging and Publishing
-
-Each build is tagged (typically using commit SHA or latest) and pushed to Docker Hub.
-
-4. Kubernetes Deployment
-
-After the image is pushed, the pipeline:
-	•	Uses kubectl to create or update a Deployment
-	•	Optionally exposes the application using a Kubernetes Service (NodePort or ClusterIP)
-
-5. Automatic Rollout
-
-Kubernetes performs a rolling update, ensuring zero downtime deployment of new application versions.
+How the Pipeline Works
+	1.	GitHub Repository: All source code, Dockerfile, and Kubernetes manifests are stored here.
+	2.	Docker Build & Push: Each commit triggers the build of a Docker image, which is then pushed to Docker Hub.
+	3.	Kubernetes Deployment: The pipeline applies the Deployment and Service manifests using kubectl, ensuring that the latest version is running in the cluster.
 
 Technology Stack
-	•	Python / Flask – Simple web service
-	•	Docker – Containerization of the application
-	•	Docker Hub – Image registry
-	•	GitHub Actions – CI/CD automation
-	•	Kubernetes (Minikube or cloud cluster) – Deployment platform
-	•	kubectl – Cluster interaction and deployment updates
+	•	Python / Flask – web application
+	•	Docker – containerization
+	•	Docker Hub – image registry
+	•	GitHub Actions – automation of CI/CD pipeline
+	•	Kubernetes – container orchestration
+	•	kubectl – command-line cluster management
 
-Folder Structure
+Project Structure
 
 ./
 ├── app.py               # Flask application
 ├── requirements.txt     # Python dependencies
-├── Dockerfile           # Docker build instructions
-├── deployment.yaml      # Kubernetes Deployment manifest (if included)
-├── service.yaml         # Kubernetes Service manifest (optional)
+├── Dockerfile           # Instructions to build the Docker image
+├── deployment.yaml      # Kubernetes Deployment manifest
+├── service.yaml         # Kubernetes Service manifest
 └── .github/workflows/   # CI/CD pipeline definitions
 
-Result
-
-This pipeline successfully performs:
-	•	Automated code retrieval
-	•	Docker image generation and publishing
-	•	Kubernetes deployment and rolling updates
-
-Each commit to the repository triggers the entire pipeline, providing a reliable, production-ready DevOps workflow.
-
-The deployed application is reachable from within the Kubernetes cluster (and externally if a Service is configured), confirming the complete CI/CD functionality from Git to Kubernetes.
-
-How to Run Locally
+Running Locally
 
 Build the Docker image:
 
@@ -76,21 +46,22 @@ Run the container:
 
 docker run -p 5000:5000 <your-dockerhub-username>/flask-hello-world:latest
 
-Then open:
+Then open your browser at http://localhost:5000 to see the app.
 
-http://localhost:5000
-
-How to Deploy on Kubernetes
+Deploying to Kubernetes
 
 Apply the Deployment:
 
 kubectl apply -f deployment.yaml
 
-(Optional) Expose the app:
+(Optional) Apply the Service:
 
 kubectl apply -f service.yaml
 
+Result
+
+This pipeline fully automates the workflow from code changes in GitHub to a running application in Kubernetes. Every commit triggers the process, producing a Docker image, pushing it to Docker Hub, and updating the Kubernetes deployment without downtime. It’s a small but complete demonstration of DevOps principles in action.
 
 ⸻
 
-This project demonstrates a fully functional, automated CI/CD pipeline suitable for learning, demonstration, and foundational DevOps implementation.
+I hope this gives you a clear picture of how CI/CD can streamline application delivery and management. Enjoy exploring the pipeline!
