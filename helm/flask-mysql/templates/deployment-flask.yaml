@@ -1,28 +1,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flask
+  name: {{ include "flask-mysql.fullname" . }}-flask
+  labels:
+    app: {{ include "flask-mysql.name" . }}-flask
 spec:
   replicas: {{ .Values.flask.replicas }}
   selector:
     matchLabels:
-      app: flask
+      app: {{ include "flask-mysql.name" . }}-flask
   template:
     metadata:
       labels:
-        app: flask
+        app: {{ include "flask-mysql.name" . }}-flask
     spec:
       containers:
         - name: flask
           image: {{ .Values.flask.image }}
+          ports:
+            - containerPort: {{ .Values.flask.service.targetPort | default 5000 }}
           env:
             - name: DB_HOST
-              value: mysql
+              value: {{ printf "%s-%s" (include "flask-mysql.fullname" .) "mysql" | quote }}
             - name: DB_USER
-              value: {{ .Values.mysql.user }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "flask-mysql.fullname" . }}-mysql-secret
+                  key: mysql-user
             - name: DB_PASSWORD
-              value: {{ .Values.mysql.password }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "flask-mysql.fullname" . }}-mysql-secret
+                  key: mysql-password
             - name: DB_NAME
-              value: {{ .Values.mysql.database }}
-          ports:
-            - containerPort: 5000
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "flask-mysql.fullname" . }}-mysql-secret
+                  key: mysql-database
