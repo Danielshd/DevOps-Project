@@ -170,6 +170,24 @@ jobs:
         kubectl apply -f service.yaml
         kubectl apply -f mysql-deployment.yaml
 
+    - name: Helm deploy (Flask + MySQL)
+      run: |
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        chmod 700 get_helm.sh
+        ./get_helm.sh
+
+        RELEASE_NAME=flask
+        CHART_DIR=./helm/flask-mysql
+        IMAGE_URI=${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest
+
+        helm upgrade --install $RELEASE_NAME $CHART_DIR \
+          --namespace default --create-namespace \
+          --set flask.image="$IMAGE_URI" \
+          --set mysql.rootPassword="${{ secrets.MYSQL_ROOT_PASSWORD }}" \
+          --set mysql.password="${{ secrets.MYSQL_USER_PASSWORD }}" \
+          --set mysql.database="${{ secrets.MYSQL_DATABASE }}" \
+          --wait --timeout 5m
+
     # Optional: Test deployment
     - name: Test deployment
       run: kubectl get deployments -A
