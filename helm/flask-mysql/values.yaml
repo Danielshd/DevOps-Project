@@ -1,0 +1,10 @@
+flask:
+  image: "<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/<REPO_NAME>:latest"
+  replicas: 1
+
+mysql:
+  image: mysql:5.7
+  rootPassword: root123
+  database: flaskdb
+  user: flaskuser
+  password: flaskpass
