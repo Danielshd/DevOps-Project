@@ -55,7 +55,7 @@ jobs:
       run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
 
    
-        # Install Helm
+    # Install Helm
     - name: Install Helm
       uses: azure/setup-helm@v4
 
