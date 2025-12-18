@@ -65,8 +65,13 @@ jobs:
         helm upgrade --install flask-app ./helm/flask-app \
           --set image.repository=${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world \
           --set image.tag=latest
+
+    # Argo CD sync
+    - name: Sync Argo CD Application
+      run: |
+        kubectl apply -f argocd/flask-app.yaml
  
-    # Optional: Test deployment
+    # Test deployment
     - name: Test deployment
       run: kubectl get deployments -A
 
