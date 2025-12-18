@@ -33,7 +33,17 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest .
-        
+
+    # Trivy security scan
+    - name: Run Trivy vulnerability scan
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest
+        format: table
+        exit-code: 0
+        ignore-unfixed: true
+        vuln-type: os,library
+        severity: CRITICAL,HIGH
 
     # Push Docker image to Docker Hub
     - name: Push Docker image
