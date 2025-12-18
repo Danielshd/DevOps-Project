@@ -54,54 +54,17 @@ jobs:
     - name: Update kubeconfig
       run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
 
-    # Generate Deployment YAML dynamically
-    - name: Generate Deployment YAML
-      run: |
-        cat <<EOF > deployment.yaml
-        apiVersion: apps/v1
-        kind: Deployment
-        metadata:
-          name: flask-deployment
-        spec:
-          replicas: 1
-          selector:
-            matchLabels:
-              app: flask-app
-          template:
-            metadata:
-              labels:
-                app: flask-app
-            spec:
-              containers:
-              - name: flask-container
-                image: ${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world:latest
-                ports:
-                - containerPort: 5000
-        EOF
+   
+        # Install Helm
+    - name: Install Helm
+      uses: azure/setup-helm@v4
 
-    # Generate Service YAML dynamically
-    - name: Generate Service YAML
+    # Deploy using Helm
+    - name: Deploy with Helm
       run: |
-        cat <<EOF > service.yaml
-        apiVersion: v1
-        kind: Service
-        metadata:
-          name: flask-service
-        spec:
-          selector:
-            app: flask-app
-          type: NodePort
-          ports:
-          - protocol: TCP
-            port: 5000
-            targetPort: 5000
-        EOF
-
-    # Deploy to Kubernetes
-    - name: Deploy to EKS
-      run: |
-        kubectl apply -f deployment.yaml
-        kubectl apply -f service.yaml
+        helm upgrade --install flask-app ./helm/flask-app \
+          --set image.repository=${{ secrets.DOCKERHUB_USERNAME }}/flask-hello-world \
+          --set image.tag=latest
  
     # Optional: Test deployment
     - name: Test deployment
