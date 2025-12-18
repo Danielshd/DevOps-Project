@@ -1,0 +1,7 @@
+image:
+  repository: docker.io/YOUR_DOCKERHUB_USERNAME/flask-hello-world
+  tag: latest
+
+service:
+  type: NodePort
+  port: 5000
