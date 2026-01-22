@@ -1,26 +1,65 @@
-Flask CI/CD Pipeline with Docker, Helm, EKS, and Argo CD
+Flask CI/CD Pipeline on AWS EKS
 
-This repository contains an end-to-end CI/CD and GitOps-oriented deployment pipeline for a Dockerized Flask application running on AWS EKS
+This project demonstrates a complete CI/CD pipeline for a Flask application, deployed to AWS EKS, using GitHub Actions.
+The focus of this repository is automation — from code push to a running application in Kubernetes.
 
-The project demonstrates how to:
-- Build and scan container images in CI
-- Publish images to Docker Hub
-- Deploy applications to Kubernetes using Helm
-- Synchronize cluster state using Argo CD (GitOps)
 
-Purpose of This Project:
+What This Project Does:
 
-The goal of this repository is to demonstrate DevOps and Platform Engineering practices, including:
+Every time code is pushed to the main branch, the pipeline automatically:
+	1.	Builds a Docker image for the Flask app
+	2.	Scans the image for vulnerabilities using Trivy
+	3.	Pushes the image to Docker Hub
+	4.	Connects securely to AWS EKS
+	5.	Deploys the application using Helm
+	6.	Applies the Argo CD application manifest
+	7.	Verifies the deployment and prints the access URL
+No manual steps are required.
 
-- Continuous Integration using GitHub Actions
-- Container security scanning with Trivy
-- Kubernetes application packaging with Helm
-- GitOps-style deployment using Argo CD
-- Cloud-native deployment on AWS EKS
+CI/CD Flow:
+GitHub Push
+   ↓
+Docker Build
+   ↓
+Trivy Security Scan
+   ↓
+Docker Hub Push
+   ↓
+Helm Deployment
+   ↓
+AWS EKS
 
-This project is suitable for:
-- Learning CI/CD and GitOps concepts
-- Kubernetes and Helm hands-on practice
+Technology Stack:
+	•	Flask – Python web application
+	•	Docker – Containerization
+	•	Docker Hub – Container registry
+	•	GitHub Actions – CI/CD automation
+	•	AWS EKS – Kubernetes cluster
+	•	Helm – Kubernetes package manager
+	•	Trivy – Image vulnerability scanning
+	•	Argo CD – Kubernetes application configuration
 
-Architecture: 
-Developer ( git push )-> GitHub Actions (CI) -> Docker Build & Security Scan -> Docker Hub (Image Registry) -> Helm Chart (Kubernetes Manifests) -> Argo CD (GitOps Sync) -> AWS EKS Cluster -> Flask Application (Kubernetes)
+Repository Structure:
+  .
+├── app.py
+├── Dockerfile
+├── requirements.txt
+├── helm/
+│   └── flask-app/
+├── argocd/
+│   └── flask-app.yaml
+├── .github/workflows/
+│   └── ci-cd.yaml
+└── README.md
+
+Deployment Details:
+	•	Docker images are tagged as latest
+	•	The Kubernetes deployment is managed via Helm
+	•	The service is exposed using NodePort
+	•	Argo CD manifests are applied as part of the pipeline
+	•	The workflow prints the service URL after deployment
+
+Accessing the Application:
+After a successful pipeline run, the workflow outputs:
+Flask app should be accessible at http://<NODE_IP>:<NODE_PORT>
+This URL can be used to verify that the application is running.
